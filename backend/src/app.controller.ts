@@ -14,21 +14,24 @@ export class AppController {
     return this.googleService.fetchFile(fileId);
   }
 
-  @Get('sheets/:url')
-  async fetchSheetData(@Param('url') url: string): Promise<any> {
-    const sheetId = this.googleService.extractSheetId(url);
+  @Get('sheets/:sheetId')
+  async fetchSheetData(@Param('sheetId') sheetId: string): Promise<any> {
     return this.googleService.retrieveSheetData(sheetId);
   }
 
-  @Post('sheets/:url')
-  async addSheetData(@Body() data: any, @Param('url') url: string): Promise<any> {
-    const sheetId = this.googleService.extractSheetId(url);
+  @Post('sheets/:sheetId')
+  async addSheetData(@Body() data: any, @Param('sheetId') sheetId: string): Promise<any> {
     return this.googleService.addSheetData(sheetId, data);
   }
 
-  @Patch('sheets/:url')
-  async updateSheetData(@Body() data: any, @Param('url') url: string): Promise<any> {
-    const sheetId = this.googleService.extractSheetId(url);
+  @Patch('sheets/:sheetId')
+  async updateSheetData(@Body() data: any, @Param('sheetId') sheetId: string): Promise<any> {
     return this.googleService.modifySheetData(sheetId, data);
   }
+
+  @Get('sheets/:sheetId/debug')
+  async debugSheetData(@Param('sheetId') sheetId: string): Promise<any> {
+    const data = await this.googleService.retrieveSheetData(sheetId);
+    return { data, patientIds: data.map(item => item.patientId) };
+}
 }

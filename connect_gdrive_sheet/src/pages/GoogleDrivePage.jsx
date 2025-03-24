@@ -12,14 +12,30 @@ import {
 } from '@mui/material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { set } from 'lodash';
+import usePatientStore from 'src/store/patientStore';
 
 export default function GoogleDrivePage() {
   const [open, setOpen] = useState(false);
   const [link, setLink] = useState('');
   const [error, setError] = useState('');
+  const [sheetId, setSheetId] = useState('');
+  const {setGoogleSheetId} = usePatientStore()
   const Navigate = useNavigate();
 
   const googleSheetRegex = /^https:\/\/docs\.google\.com\/spreadsheets\/d\/[a-zA-Z0-9-_]+/;
+
+  function extractSheetId(url) {
+    if (typeof url !== 'string') {
+      throw new Error('Invalid URL: Must be a string');
+    }
+    const regex = /\/d\/([a-zA-Z0-9-_]+)/;
+    const match = url.match(regex);
+    if (!match || !match[1]) {
+      throw new Error('Invalid Google Sheets URL');
+    }
+    return match[1];
+  }
 
   const handleSubmit = () => {
     if (!googleSheetRegex.test(link.trim())) {
@@ -28,28 +44,31 @@ export default function GoogleDrivePage() {
     }
     setError('');
     setOpen(false);
-
+  
     const handleSuccess = async () => {
-      const response = await fetch(`${process.env.SERVER_URL}/google-sheet`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ link }),
-      });
-      if (!response.ok) {
-        console.error('Failed to submit link:', response.statusText);
-        return;
-      };
-
-      Navigate('/dashboard/addPatients');
-      
+      try {
+        const extractedSheetId = extractSheetId(link);
+        setSheetId(extractedSheetId);
+        setGoogleSheetId(extractedSheetId);
+  
+        const response = await fetch(
+          `${process.env.SERVER_URL}/api/sheet/${extractedSheetId}`
+        );
+        if (!response.ok) {
+          console.error('Failed to submit link:', response.statusText);
+          return;
+        }
+  
+        Navigate('/dashboard/addPatients');
+        console.log('Valid link:', link);
+      } catch (error) {
+        console.error('Failed to extract sheet ID from link:', link);
+      }
     };
-
+  
     handleSuccess();
-    // handle successful link submission here
-    console.log('Valid link:', link);
   };
+  
 
   return (
     <>

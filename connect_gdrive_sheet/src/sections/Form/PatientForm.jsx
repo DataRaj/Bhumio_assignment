@@ -10,7 +10,7 @@ import Typography from '@mui/material/Typography';
 import { Container, Grid, TextField } from '@mui/material';
 import { useState } from 'react';
 import IDGenerater from '../../utils/IdGenerater';
-
+import usePatientStore from 'src/store/patientStore';
 const steps = [
     {
         label: 'Patients Details',
@@ -34,6 +34,8 @@ export default function PatientForm() {
 
     const [formData, setFormData] = useState({});
 
+    const googleSheetId = usePatientStore((state) => state.googleSheetId);
+
     const getAutoDetails = async () => {
         const DrId = await IDGenerater(290, "dr")
         const PatientID = await IDGenerater(344, "a12kj")
@@ -43,6 +45,8 @@ export default function PatientForm() {
     React.useEffect(() => {
         getAutoDetails()
     }, [])
+
+    // console.log(formData['Physician Name (First, Last Name)'].split(' '));
 
     const [errors, setErrors] = useState({});
 
@@ -104,14 +108,61 @@ export default function PatientForm() {
         setErrors(newErrors);
         return isValid;
     };
-    console.log(formData);
     const handleFinish = async () => {
 
         const fieldMapping = {
-            "Patient Name (First, Last Name)": ["first_name", "last_name"],
-            "Physician Name (First, Last Name)": ["Physician_first_name", "Physician_last_name"],
+            "Patient Name (First, Last Name)": ["firstname", "lastname"],
+            "Physician Name (First, Last Name)": ["physicianFirstName", "physicianlastName"],
 
         };
+
+        const requestData = {
+            patientId: formData['Patient ID'],
+            firstName: formData['Patient Name (First, Last Name)']?.split(' ')[0] || '',
+            lastName: formData['Patient Name (First, Last Name)']?.split(' ')[1] || '',
+            address: formData['Address'] || '',
+            location: formData['Location'] || '',
+            phone: formData['Phone'] || '',
+            physicianId: formData['Physician ID'],
+            prescription: formData['Prescription'] || '',
+            dose: formData['Dose'] || '',
+            physicianFirstName: formData['Physician Name (First, Last Name)']?.split(' ')[0] || '',
+            physicianlastName: formData['Physician Name (First, Last Name)']?.split(' ')[1] || '',
+            physicianNumber: formData['Physician Number'] || '',
+            visitDate: formData['Visit Date'] || '',
+            nextVisit: formData['Next Visit'] || '',
+        };
+
+        try {
+            const response = await fetch(`http://localhost:4000/api/sheets/${googleSheetId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestData),
+            });
+
+            if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log('Data successfully saved:', result);
+
+        } catch (error) {
+            console.error('Error saving data:', error);
+        }
+        
+        const clearFormData = () => {
+            const clearedData = {};
+            Object.keys(formData).forEach((key) => {
+                clearedData[key] = '';
+            });
+            setFormData(clearedData);
+            setErrors({});
+        };
+
+        clearFormData();
 
         const renamedFormData = {};
 

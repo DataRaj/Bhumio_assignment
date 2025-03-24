@@ -29,7 +29,7 @@ function removeKeys(index, data) {
 
 export function mergeEntitiesByIndex(data: any) {
   const arrayLength = data.patient.length;
-  const mergedArray = [];
+  const mergedArray: Record<string, any>[] = [];
 
   for (let i = 0; i < arrayLength; i++) {
     const mergedObject = removeKeys(i, data);
@@ -37,3 +37,5 @@ export function mergeEntitiesByIndex(data: any) {
   }
   return mergedArray;
 }
+
+

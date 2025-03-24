@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { Injectable } from '@nestjs/common';
-import { googleApiConfig } from 'configs/googleConfig';
+import { googleApiConfig } from 'config/google-api.config'; 
 import { drive_v3, google, sheets_v4 } from 'googleapis';
 import { ArrayToJson } from 'src/utils/ArrayToJson.util';
 import { mergeEntitiesByIndex } from 'src/utils/MergeObjects.util';
@@ -44,7 +44,7 @@ export class GoogleService {
   }
 
 
-  extractSheetId(url: string): string {
+  private extractSheetId(url: string): string {
     if (typeof url !== 'string') {
       throw new Error('Invalid URL: Must be a string');
     }
@@ -56,20 +56,31 @@ export class GoogleService {
     return match[1];
   }
 
+  
+
   async retrieveSheetData(spreadsheetId: string): Promise<any> {
     try {
       const [patient, physician, appointment, prescription] = await Promise.all([
         this.fetchSheetRange(spreadsheetId, 'patient'),
         this.fetchSheetRange(spreadsheetId, 'physician'),
         this.fetchSheetRange(spreadsheetId, 'appointment'),
-        this.fetchSheetRange(spreadsheetId, 'prescription'),
+        this.fetchSheetRange(spreadsheetId, 'prescribes'),
       ]);
 
-      return mergeEntitiesByIndex({
+      const result = mergeEntitiesByIndex({
         patient: ArrayToJson(patient.data.values),
         physician: ArrayToJson(physician.data.values),
         appointment: ArrayToJson(appointment.data.values),
         prescription: ArrayToJson(prescription.data.values),
+      });
+      
+      // Normalize the data to ensure consistent property names
+      return result.map(item => {
+        // Create a normalized version with lowercase keys
+        return {
+          ...item,
+          patientId: item.patientID || item.PatientID || item.patientId
+        };
       });
     } catch (e) {
       console.error('Error retrieving sheet data:', e.message);
@@ -84,9 +95,10 @@ export class GoogleService {
   async addSheetData(spreadsheetId: string, data: any): Promise<any> {
     try {
       const [patient, prescription, physician, appointment] = this.prepareDataForSheets(data);
+      console.log(patient.toLocaleString())
       const results = await Promise.all([
         this.appendToSheet(spreadsheetId, 'patient', patient),
-        this.appendToSheet(spreadsheetId, 'prescription', prescription),
+        this.appendToSheet(spreadsheetId, 'prescribes', prescription),
         this.appendToSheet(spreadsheetId, 'physician', physician),
         this.appendToSheet(spreadsheetId, 'appointment', appointment),
       ]);
@@ -100,10 +112,10 @@ export class GoogleService {
 
   private prepareDataForSheets(data: any) {
     return [
-      [data.patientId, data.firstName, data.lastName, data.age, data.gender, data.address, data.location, data.email, data.phone],
+      [data.patientId, data.firstName, data.lastName, data.address, data.location, data.email, data.phone],
       [data.physicianId, data.patientId, data.prescription, data.dose],
       [data.physicianId, data.physicianFirstName, data.physicianlastName, data.physicianNumber],
-      [data.appointmentId, data.patientId, data.physicianId, data.visitDate, data.nextVisit, data.bill],
+      [data.appointmentId, data.patientId, data.physicianId, data.visitDate, data.nextVisit],
     ];
   }
 
@@ -120,10 +132,10 @@ export class GoogleService {
     try {
       const index = await this.findRowIndex(spreadsheetId, data.patientId);
       const [patient, prescription, physician, appointment] = this.prepareDataForSheets(data);
-
+      console.log(`prescription is ${prescription.toLocaleString()}) ` )
       const results = await Promise.all([
         this.updateSheetRange(spreadsheetId, `patient!A${index}:I${index}`, [patient]),
-        this.updateSheetRange(spreadsheetId, `prescription!A${index}:D${index}`, [prescription]),
+        this.updateSheetRange(spreadsheetId, `prescribes!A${index}:D${index}`, [prescription]),
         this.updateSheetRange(spreadsheetId, `physician!A${index}:E${index}`, [physician]),
         this.updateSheetRange(spreadsheetId, `appointment!A${index}:F${index}`, [appointment]),
       ]);
@@ -137,7 +149,13 @@ export class GoogleService {
 
   private async findRowIndex(spreadsheetId: string, patientId: string): Promise<number> {
     const data = await this.retrieveSheetData(spreadsheetId);
+    console.log("Retrieved data:", JSON.stringify(data));
+    console.log("Patient IDs:", data.map(item => item.patientId));
+    console.log("Looking for patient ID:", patientId);
+    
     const index = data.findIndex((entry) => entry.patientId === patientId);
+    console.log("Found index:", index);
+    
     if (index === -1) throw new Error('Patient ID not found');
     return index + 2; // +2 to account for header row and 1-based indexing
   }
