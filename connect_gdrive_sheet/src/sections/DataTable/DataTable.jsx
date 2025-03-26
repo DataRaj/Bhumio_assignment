@@ -1,4 +1,3 @@
-/* eslint-disable react/prop-types */
 import * as React from 'react';
 import PropTypes from 'prop-types';
 import Box from '@mui/material/Box';
@@ -14,273 +13,121 @@ import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
-import { Button, TextField } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { IconButton as MuiIconButton } from '@mui/material';
+import { Link } from 'react-router-dom';
+import usePatientStore from 'src/store/patientStore';
 
-function createData(firstName,
-    lastName,
-    Location,
-    Age,
-    Phone,
-    Gender,
-    Address,
-    Prescription,
-    Dose,
-    PhysicianFirstName,
-    PhysicianLastName,
-    PhysicianNumber,
-    Bill,
-    NextVisit,
-    PhysicianID,
-    PatientID,
-    VisitDate) {
-    return {
-        firstName,
-        lastName,
-        Location,
-        Age,
-        Phone,
-        Gender,
-        Address,
-        Prescription,
-        Dose,
-        PhysicianFirstName,
-        PhysicianLastName,
-        PhysicianNumber,
-        Bill,
-        NextVisit,
-        PhysicianID,
-        PatientID,
-        VisitDate
-    };
-}
 
-function Row(props) {
-    const { row } = props;
-    const [open, setOpen] = React.useState(false);
 
-    return (
-        <>
-            <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
-                <TableCell>
-                    <IconButton
-                        aria-label="expand row"
-                        size="small"
-                        onClick={() => setOpen(!open)}
-                    >
-                        {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
-                    </IconButton>
-                    <Link to='/dashboard/editPatient_form' state={row}>
+function Row({ row }) {
+  const [open, setOpen] = React.useState(false);
 
-                        <IconButton
-                            aria-label="expand row"
-                            size="small"
-                            title='Edit'
-                        >
-                            <EditIcon fontSize='small' />
-                        </IconButton>
-                    </Link>
-                </TableCell>
-                <TableCell>{row.PatientID}</TableCell>
-                <TableCell component="th" scope="row">
-                    {`${row.firstName} ${row.lastName}`}
-                </TableCell>
-                <TableCell>{row.Location}</TableCell>
-                <TableCell>{row.Age}</TableCell>
-                <TableCell>{row.Phone}</TableCell>
-                <TableCell>{row.Gender}</TableCell>
-                <TableCell>{row.Address}</TableCell>
-
-            </TableRow>
-            <TableRow>
-                <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={12}>
-                    <Collapse in={open} timeout="auto" unmountOnExit>
-                        <Box sx={{ margin: 1, m: 5 }}>
-                            <Typography variant="h6" gutterBottom component="div">
-                                Prescription and Physician  Details
-                            </Typography>
-                            <Table size="small" aria-label="purchases">
-                                <TableHead>
-                                    <TableRow>
-
-                                        <TableCell >Prescription</TableCell>
-                                        <TableCell >Dose</TableCell>
-                                        <TableCell >Physician name</TableCell>
-                                        <TableCell >Physician number</TableCell>
-                                        <TableCell >Bill</TableCell>
-                                        <TableCell >Physician Id</TableCell>
-                                        <TableCell >Visit date</TableCell>
-                                        <TableCell >Next visit</TableCell>
-                                    </TableRow>
-                                </TableHead>
-                                <TableBody>
-                                    <TableCell >{row.Prescription}</TableCell>
-                                    <TableCell >{row.Dose}</TableCell>
-                                    <TableCell >{`${row.PhysicianFirstName} ${row.PhysicianLastName}`}</TableCell>
-                                    <TableCell >{row.PhysicianNumber}</TableCell>
-                                    <TableCell >{row.Bill}</TableCell>
-                                    <TableCell >{row.PhysicianID}</TableCell>
-                                    <TableCell >{row.VisitDate}</TableCell>
-                                    <TableCell >{row.NextVisit}</TableCell>
-
-                                </TableBody>
-                            </Table>
-                        </Box>
-                    </Collapse>
-                </TableCell>
-            </TableRow>
-        </>
-    );
+  return (
+    <>
+      <TableRow sx={{ '& > *': { borderBottom: 'unset' } }}>
+        <TableCell>
+          <IconButton
+            aria-label="expand row"
+            size="small"
+            onClick={() => setOpen(!open)}
+          >
+            {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDownIcon />}
+          </IconButton>
+          <Link to="/dashboard/editPatient_form" state={row}>
+            <MuiIconButton aria-label="edit" size="small" title="Edit">
+              <EditIcon fontSize="small" />
+            </MuiIconButton>
+          </Link>
+        </TableCell>
+        <TableCell>{row.patientId}</TableCell>
+        <TableCell>{`${row.first_name} ${row.last_name}`}</TableCell>
+        <TableCell>{row.location}</TableCell>
+        <TableCell>{row.age}</TableCell>
+        <TableCell>{row.phone}</TableCell>
+        <TableCell>{row.gender}</TableCell>
+        <TableCell>{row.address}</TableCell>
+      </TableRow>
+      <TableRow>
+        <TableCell colSpan={12} style={{ paddingBottom: 0, paddingTop: 0 }}>
+          <Collapse in={open} timeout="auto" unmountOnExit>
+            <Box sx={{ m: 2 }}>
+              <Typography variant="h6" gutterBottom>
+                Prescription and Physician Details
+              </Typography>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Prescription</TableCell>
+                    <TableCell>Dose</TableCell>
+                    <TableCell>Physician Name</TableCell>
+                    <TableCell>Physician Number</TableCell>
+                    <TableCell>Bill</TableCell>
+                    <TableCell>Physician ID</TableCell>
+                    <TableCell>Visit Date</TableCell>
+                    <TableCell>Next Visit</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>{row.prescription}</TableCell>
+                    <TableCell>{row.dose}</TableCell>
+                    <TableCell>{`${row.physicianFirstName} ${row.physicianLastName}`}</TableCell>
+                    <TableCell>{row.physicianNumber}</TableCell>
+                    <TableCell>{row.bill}</TableCell>
+                    <TableCell>{row.physicianId}</TableCell>
+                    <TableCell>{row.visitDate}</TableCell>
+                    <TableCell>{row.nextVisit}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </Box>
+          </Collapse>
+        </TableCell>
+      </TableRow>
+    </>
+  );
 }
 
 Row.propTypes = {
-    row: PropTypes.shape({
-        calories: PropTypes.number.isRequired,
-        carbs: PropTypes.number.isRequired,
-        fat: PropTypes.number.isRequired,
-        history: PropTypes.arrayOf(
-            PropTypes.shape({
-                amount: PropTypes.number.isRequired,
-                customerId: PropTypes.string.isRequired,
-                date: PropTypes.string.isRequired,
-            }),
-        ).isRequired,
-        name: PropTypes.string.isRequired,
-        price: PropTypes.number.isRequired,
-        protein: PropTypes.number.isRequired,
-    }).isRequired,
+  row: PropTypes.object.isRequired,
 };
 
-const rows = [
-    createData("first_name",
-        "last_name",
-        "Location",
-        "Age",
-        "Phone",
-        "Gender",
-        "Address",
-        "Prescription",
-        "Dose",
-        "Physician_first_name",
-        "Physician_last_name",
-        "Physician Number",
-        "Bill",
-        "Next Visit",
-        "Physician -ID",
-        "Patient- ID",
-        "Visit Date"),
-    createData("first_name",
-        "last_name",
-        "Location",
-        "Age",
-        "Phone",
-        "Gender",
-        "Address",
-        "Prescription",
-        "Dose",
-        "Physician_first_name",
-        "Physician_last_name",
-        "Physician Number",
-        "Bill",
-        "Next Visit",
-        "Physician -ID",
-        "Patient- ID",
-        "Visit Date"),
-    createData("first_name",
-        "last_name",
-        "Location",
-        "Age",
-        "Phone",
-        "Gender",
-        "Address",
-        "Prescription",
-        "Dose",
-        "Physician_first_name",
-        "Physician_last_name",
-        "7894561230",
-        "Bill",
-        "Next Visit",
-        "Physician -ID",
-        "Patient- ID",
-        "Visit Date"),
-
-];
-
-
 export default function DataTable({ searchQuery }) {
+  const { patients, fetchPatients } = usePatientStore();
 
-    console.log(rows);
-    const filteredPatients = rows.filter((patient) => {
-        const {
-            firstName,
-            lastName,
-            Location,
-            Age,
-            Phone,
-            Gender,
-            Address,
-            Prescription,
-            Dose,
-            PhysicianFirstName,
-            PhysicianLastName,
-            PhysicianNumber,
-            Bill,
-            NextVisit,
-            PhysicianID,
-            PatientID,
-            VisitDate } = patient;
-        const lowerCaseQuery = String(searchQuery).toLowerCase();
+  React.useEffect(() => {
+    fetchPatients();
+  }, [fetchPatients]);
 
-        return (
-            String(firstName).toLowerCase().includes(lowerCaseQuery) ||
-            String(lastName).toLowerCase().includes(lowerCaseQuery) ||
-            String(Location).toLowerCase().includes(lowerCaseQuery) ||
-            String(Age).toLowerCase().includes(lowerCaseQuery) ||
-            String(Phone).toLowerCase().includes(lowerCaseQuery) ||
-            String(Gender).toLowerCase().includes(lowerCaseQuery) ||
-            String(Address).toLowerCase().includes(lowerCaseQuery) ||
-            String(Prescription).toLowerCase().includes(lowerCaseQuery) ||
-            String(Dose).toLowerCase().includes(lowerCaseQuery) ||
-            String(PhysicianFirstName).toLowerCase().includes(lowerCaseQuery) ||
-            String(PhysicianLastName).toLowerCase().includes(lowerCaseQuery) ||
-            String(PhysicianNumber).toLowerCase().includes(lowerCaseQuery) ||
-            String(Bill).toLowerCase().includes(lowerCaseQuery) ||
-            String(NextVisit).toLowerCase().includes(lowerCaseQuery) ||
-            String(PhysicianID).toLowerCase().includes(lowerCaseQuery) ||
-            String(PatientID).toLowerCase().includes(lowerCaseQuery) ||
-            String(VisitDate).toLowerCase().includes(lowerCaseQuery)
-
-        );
-    });
-
-
-
-    return (
-        <TableContainer component={Paper}>
-
-            <Table aria-label="collapsible table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell >Actions</TableCell>
-                        <TableCell >Patient Id</TableCell>
-
-                        <TableCell>Patient name</TableCell>
-                        <TableCell>Location</TableCell>
-                        <TableCell>Age</TableCell>
-                        <TableCell>Phone</TableCell>
-                        <TableCell>Gender</TableCell>
-                        <TableCell>Address</TableCell>
-
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {filteredPatients.map((row) => (
-                        <Row key={row.name} row={row} />
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+  const filteredPatients = patients.filter((patient) => {
+    const lowerCaseQuery = searchQuery.toLowerCase();
+    return Object.values(patient).some((val) =>
+      String(val).toLowerCase().includes(lowerCaseQuery)
     );
+  });
+
+  return (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>Actions</TableCell>
+            <TableCell>Patient ID</TableCell>
+            <TableCell>Patient Name</TableCell>
+            <TableCell>Location</TableCell>
+            <TableCell>Age</TableCell>
+            <TableCell>Phone</TableCell>
+            <TableCell>Gender</TableCell>
+            <TableCell>Address</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {filteredPatients.map((row) => (
+            <Row key={row.patientId} row={row} />
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
 }

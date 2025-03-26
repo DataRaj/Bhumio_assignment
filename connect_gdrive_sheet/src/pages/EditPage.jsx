@@ -19,6 +19,8 @@ import DataTable from '../sections/DataTable/DataTable';
 
 export default function EditPage() {
   const [open, setOpen] = useState(null);
+  console.log(sessionStorage.getItem('googleSheetId'));
+
 
   const handleCloseMenu = () => {
     setOpen(null);

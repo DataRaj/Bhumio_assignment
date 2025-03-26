@@ -19,6 +19,21 @@ const usePatientStore = create((set) => ({
             ),
         })),
     importPatients: (patientsData) => set(() => ({ patients: patientsData })),
+    fetchPatients: async () => {            
+        
+        try {
+            // const response = await fetch(`${process.env.SERVER_URL}/api/sheets/${sessionStorage.getItem('googleSheetId')}`);
+            const response = await fetch('http://localhost:4000/api/sheets/' + sessionStorage.getItem('googleSheetId'));
+            if (!response.ok) {
+                throw new Error('Failed to fetch patients data');
+            }
+            const data = await response.json();
+            console.log('Data:', );
+            set(() => ({ patients: data }));
+        } catch (error) {
+            console.error('Error fetching patients:', error);
+        }
+    },
 }));
 
 export default usePatientStore;
