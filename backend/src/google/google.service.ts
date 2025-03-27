@@ -147,6 +147,34 @@ export class GoogleService {
     }
   }
 
+  async deleteSheetData(spreadsheetId: string, patientId: string): Promise<any> {
+    try {
+      const index = await this.findRowIndex(spreadsheetId, patientId);
+      const ranges = [
+        `patient!A${index}:I${index}`,
+        `prescribes!A${index}:D${index}`,
+        `physician!A${index}:E${index}`,
+        `appointment!A${index}:F${index}`,
+      ];
+
+      await Promise.all(
+        ranges.map((range) =>
+          this.sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range,
+            valueInputOption: 'RAW',
+            requestBody: { values: [['']] },
+          }),
+        ),
+      );
+
+      return { message: 'Data deleted successfully' };
+    } catch (e) {
+      console.error('Error deleting sheet data:', e.message);
+      throw e;
+    }
+  }
+
   private async findRowIndex(spreadsheetId: string, patientId: string): Promise<number> {
     const data = await this.retrieveSheetData(spreadsheetId);
     console.log("Retrieved data:", JSON.stringify(data));

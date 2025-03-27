@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { GoogleService } from './google/google.service';
 
@@ -27,6 +27,14 @@ export class AppController {
   @Patch('sheets/:sheetId')
   async updateSheetData(@Body() data: any, @Param('sheetId') sheetId: string): Promise<any> {
     return this.googleService.modifySheetData(sheetId, data);
+  }
+
+  @Delete('sheets/:sheetId/:patientId')
+  async deleteSheetData(
+    @Param('sheetId') sheetId: string,
+    @Param('patientId') patientId: string,
+  ): Promise<any> {
+    return this.googleService.deleteSheetData(sheetId, patientId);
   }
 
   @Get('sheets/:sheetId/debug')
