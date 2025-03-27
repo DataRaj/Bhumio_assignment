@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useLocation } from "react-router-dom";
 import {
   Container,
@@ -18,29 +18,38 @@ import {
 import usePatientStore from "src/store/patientStore";
 
 const steps = [
-  { label: "Patient Details", fields: ["Patient ID", "Patient Name", "Location", "Age", "Gender", "Phone", "Address"] },
-  { label: "Prescription Details", fields: ["Prescription", "Dose", "Visit Date", "Next Visit"] },
-  { label: "Physician Details", fields: ["Physician ID", "Physician Name", "Physician Number", "Bill"] },
+  {
+    label: "Patient Details",
+    fields: ["Patient ID", "Patient Name", "Location", "Age", "Gender", "Phone", "Address"],
+  },
+  {
+    label: "Prescription Details",
+    fields: ["Prescription", "Dose", "Visit Date", "Next Visit"],
+  },
+  {
+    label: "Physician Details",
+    fields: ["Physician ID", "Physician Name", "Physician Number", "Bill"],
+  },
 ];
 
-const EditPatientForm = () => {
+export default function EditPatientForm() {
   const [activeStep, setActiveStep] = useState(0);
   const { formData, setFormData, googleSheetLink, setGoogleSheetLink } = usePatientStore();
   const [errors, setErrors] = useState({});
-  const location = useLocation().state;
+  const location = useLocation()?.state;
 
   useEffect(() => {
-    const fetchSheetData = async () => {
+    async function fetchData() {
       try {
-        const res = await fetch("YOUR_GOOGLE_DRIVE_API_ENDPOINT");
-        const data = await res.json();
+        const response = await fetch("YOUR_GOOGLE_DRIVE_API_ENDPOINT");
+        const data = await response.json();
         setFormData(data);
         setGoogleSheetLink("YOUR_GOOGLE_SHEET_LINK");
       } catch (err) {
-        console.error("Failed fetching sheet:", err);
+        console.error("Fetch error:", err);
       }
-    };
-    fetchSheetData();
+    }
+    fetchData();
   }, [setFormData, setGoogleSheetLink]);
 
   useEffect(() => {
@@ -65,11 +74,11 @@ const EditPatientForm = () => {
     }
   }, [location, setFormData]);
 
-  const handleInputChange = useCallback(
+  const handleChange = useCallback(
     (e, field) => {
       const { value } = e.target;
       if (["Age", "Phone", "Physician Number"].includes(field) && isNaN(Number(value))) {
-        setErrors((prev) => ({ ...prev, [field]: "Only numbers allowed." }));
+        setErrors((prev) => ({ ...prev, [field]: "Numbers only" }));
         return;
       }
       setFormData({ [field]: value });
@@ -79,13 +88,11 @@ const EditPatientForm = () => {
   );
 
   const validateStep = useCallback(() => {
-    const stepFields = steps[activeStep].fields;
     const newErrors = {};
     let valid = true;
-
-    stepFields.forEach((field) => {
-      if (!formData[field]) {
-        newErrors[field] = "This field is required.";
+    steps[activeStep].fields.forEach((f) => {
+      if (!formData[f]) {
+        newErrors[f] = "Required field";
         valid = false;
       }
     });
@@ -100,67 +107,67 @@ const EditPatientForm = () => {
   const handleBack = useCallback(() => setActiveStep((prev) => prev - 1), []);
 
   const handleSave = useCallback(() => {
-    console.log("Form Saved:", formData);
-    console.log("Google Sheet:", googleSheetLink);
+    console.log("Saving Data:", formData, googleSheetLink);
   }, [formData, googleSheetLink]);
-
-  const renderStepFields = useMemo(
-    () =>
-      steps.map((step, idx) => (
-        <Step key={step.label}>
-          <StepLabel>{step.label}</StepLabel>
-          <StepContent>
-            <Grid container spacing={2}>
-              {step.fields.map((field) => (
-                <Grid item xs={4} key={field}>
-                  <TextField
-                    fullWidth
-                    id={field}
-                    label={field}
-                    value={formData[field] || ""}
-                    onChange={(e) => handleInputChange(e, field)}
-                    InputProps={{ readOnly: ["Patient ID", "Physician ID"].includes(field) }}
-                    error={Boolean(errors[field])}
-                    helperText={errors[field]}
-                  />
-                </Grid>
-              ))}
-            </Grid>
-            <Box mt={2}>
-              <Button variant="contained" onClick={idx === steps.length - 1 ? handleSave : handleNext} sx={{ mr: 1 }}>
-                {idx === steps.length - 1 ? "Save" : "Continue"}
-              </Button>
-              <Button disabled={idx === 0} onClick={handleBack}>
-                Back
-              </Button>
-            </Box>
-          </StepContent>
-        </Step>
-      )),
-    [formData, errors, handleInputChange, handleBack, handleNext, handleSave]
-  );
 
   return (
     <Container>
-      <Stack direction="row" justifyContent="space-between" mb={5}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
         <Typography variant="h4">Edit Patient Details</Typography>
       </Stack>
-      <Stepper activeStep={activeStep} orientation="vertical" sx={{ ml: 4 }}>
-        {renderStepFields}
-      </Stepper>
-      {activeStep === steps.length && (
-        <Paper square elevation={0} sx={{ p: 3 }}>
-          <Typography>Review & Save your changes.</Typography>
-          <Button onClick={() => setActiveStep(activeStep - 1)} sx={{ mt: 1, mr: 1 }}>
-            Back
-          </Button>
-          <Button onClick={handleSave} variant="contained" sx={{ mt: 1 }}>
-            Save
-          </Button>
-        </Paper>
-      )}
+
+      <Box>
+        <Stepper activeStep={activeStep} orientation="vertical" sx={{ ml: 5 }}>
+          {steps.map((step, i) => (
+            <Step key={step.label}>
+              <StepLabel>{step.label}</StepLabel>
+              <StepContent>
+                <form>
+                  <Grid container spacing={2}>
+                    {step.fields.map((field) => (
+                      <Grid item xs={4} key={field}>
+                        <TextField
+                          fullWidth
+                          id={field}
+                          label={field}
+                          variant="outlined"
+                          value={formData[field] || ""}
+                          onChange={(e) => handleChange(e, field)}
+                          InputProps={{ readOnly: ["Patient ID", "Physician ID"].includes(field) }}
+                          sx={{ mt: 2 }}
+                          error={!!errors[field]}
+                          helperText={errors[field]}
+                        />
+                      </Grid>
+                    ))}
+                  </Grid>
+                </form>
+
+                <Box sx={{ mb: 2, mt: 2 }}>
+                  <Button variant="contained" onClick={handleNext} sx={{ mr: 1 }}>
+                    {i === steps.length - 1 ? "Finish" : "Continue"}
+                  </Button>
+                  <Button disabled={i === 0} onClick={handleBack}>
+                    Back
+                  </Button>
+                </Box>
+              </StepContent>
+            </Step>
+          ))}
+        </Stepper>
+
+        {activeStep === steps.length && (
+          <Paper square elevation={0} sx={{ p: 3 }}>
+            <Typography>Review all details and save.</Typography>
+            <Button onClick={() => setActiveStep(steps.length - 1)} sx={{ mt: 1, mr: 1 }}>
+              Back
+            </Button>
+            <Button onClick={handleSave} variant="contained" sx={{ mt: 1 }}>
+              Save
+            </Button>
+          </Paper>
+        )}
+      </Box>
     </Container>
   );
-};
-
-export default EditPatientForm;
+}

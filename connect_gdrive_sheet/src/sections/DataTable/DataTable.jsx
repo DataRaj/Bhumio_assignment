@@ -18,8 +18,6 @@ import { IconButton as MuiIconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
 import usePatientStore from 'src/store/patientStore';
 
-
-
 function Row({ row }) {
   const [open, setOpen] = React.useState(false);
 
@@ -70,14 +68,14 @@ function Row({ row }) {
                 </TableHead>
                 <TableBody>
                   <TableRow>
-                    <TableCell>{row.prescription}</TableCell>
+                    <TableCell>{row.description}</TableCell>
                     <TableCell>{row.dose}</TableCell>
-                    <TableCell>{`${row.physicianFirstName} ${row.physicianLastName}`}</TableCell>
+                    <TableCell>{`${row.name}`}</TableCell>
                     <TableCell>{row.physicianNumber}</TableCell>
                     <TableCell>{row.bill}</TableCell>
-                    <TableCell>{row.physicianId}</TableCell>
-                    <TableCell>{row.visitDate}</TableCell>
-                    <TableCell>{row.nextVisit}</TableCell>
+                    <TableCell>{row.physician}</TableCell>
+                    <TableCell>{row.start_dt_time}</TableCell>
+                    <TableCell>{row.next_dt_time}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -95,6 +93,8 @@ Row.propTypes = {
 
 export default function DataTable({ searchQuery }) {
   const { patients, fetchPatients } = usePatientStore();
+
+  console.log(patients);
 
   React.useEffect(() => {
     fetchPatients();

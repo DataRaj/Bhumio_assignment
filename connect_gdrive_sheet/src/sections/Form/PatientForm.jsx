@@ -41,9 +41,13 @@ export default function PatientForm() {
     formData['Patient ID'] = PatientID || '';
 }
 
-  useEffect( () => {
+
+useEffect( () => {
   getAutoDetails();
-  }, []);
+  console.log(`lets just render this once`)
+}, []);
+
+
 
   const handleInputChange = (event, fieldName) => {
     const value = event.target.value;

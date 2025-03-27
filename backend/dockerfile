@@ -1,0 +1,33 @@
+# Use an official Node.js image as base
+FROM node:20-alpine AS builder
+
+WORKDIR /
+
+# Copy package.json and package-lock.json
+COPY package.json ./
+
+# Install dependencies
+RUN npm install --only=production
+
+# Copy the rest of the app
+COPY . .
+
+# Build the app (if needed)
+RUN npm run build
+
+# Use a minimal Node.js runtime
+FROM node:20-alpine
+
+WORKDIR /
+
+# Copy built files and dependencies
+COPY --from=builder --chown=node:node /package*.json ./
+COPY --from=builder --chown=node:node /node_modules/ ./node_modules/
+COPY --from=builder --chown=node:node /dist/ ./dist/
+
+# Expose the port (change if needed)
+EXPOSE 3000
+
+# Start the application
+CMD ["node", "dist/src/main.js"]
+
